@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>KPI Map voice input</title>
+        <link rel="stylesheet" type="text/css" th:href="@{css/styles.css}" >
+        <link rel="stylesheet" type="text/css" th:href="@{css/normalize.css}" >
+        <script src="https://cdn.jsdelivr.net/npm/paho-mqtt@1.1.0/paho-mqtt.min.js" type="text/javascript"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    </head>
+    <body>
+    <div class="centering">
+        <img class="listening-microphone" th:src="@{img/microphone-icon.png}">
+        <img class="listening-gif" th:src="@{img/animation-dots.gif}">
+        <h1 class="listening-text">Listening</h1>
+    </div>
+    <div id="output">
+        <p>Received:</p>
+        <ol id="list">
+
+        </ol>
+
+
+    </div>
+        
+        <script th:inline="javascript" type="text/javascript">
+            var clientId = [[${clientId}]];
+            var topic = [[${topic}]]+"/"+clientId;
+
+            var mqttClient = new Paho.Client([[${broker}]], [[${port}]], "/mqtt", clientId);
+            mqttClient.onConnectionLost = onConnectionLost;
+            mqttClient.onMessageArrived = onMessageArrived;
+            mqttClient.connect({onSuccess: onConnect, reconnect: true});
+
+            function onConnect() {
+                console.log("onConnect");
+                mqttClient.subscribe(topic);
+            }
+
+            function onConnectionLost(responseObject) {
+                if (responseObject.errorCode !== 0) {
+                    console.log("onConnectionLost:" + responseObject.errorMessage);
+                }
+            }
+
+            function onMessageArrived(message) {
+                console.log("onMessageArrived for topic '" +message.destinationName +"': " + message.payloadString);
+                $("#list").append($('<li>').append(message.payloadString));
+            }
+
+        </script>
+    </body>
+</html>
